@@ -1,15 +1,16 @@
 import React, { useState } from 'react'
 import EventCard from '../Components/EventCard'
-import { sampleEvents } from '../data/eventsData'
+import { useEventsState } from '../data/eventsData'
 import { Search, Sparkles, SlidersHorizontal } from 'lucide-react'
 
 const Event = () => {
+  const events = useEventsState()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
 
   const categories = ['All', 'Music', 'Tech', 'Food & Drink', 'Sports']
 
-  const filteredEvents = sampleEvents.filter((event) => {
+  const filteredEvents = events.filter((event) => {
     const matchesCategory =
       selectedCategory === 'All' ||
       event.category.toLowerCase() === selectedCategory.toLowerCase()

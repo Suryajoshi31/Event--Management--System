@@ -2,10 +2,11 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import EventCard from './EventCard'
 import { Sparkles, ArrowRight } from 'lucide-react'
-import { sampleEvents } from '../data/eventsData'
+import { useEventsState } from '../data/eventsData'
 
 const UpcomingEvents = ({ limit = 3 }) => {
-  const displayedEvents = sampleEvents.slice(0, limit)
+  const events = useEventsState()
+  const displayedEvents = events.slice(0, limit)
 
   return (
     <section className="w-full py-12 sm:py-16 px-4 sm:px-8 max-w-7xl mx-auto">

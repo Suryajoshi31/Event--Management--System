@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+
 export const sampleEvents = [
   {
     id: 1,
@@ -96,3 +98,52 @@ export const sampleEvents = [
     image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80',
   },
 ]
+
+const EVENTS_STORAGE_KEY = 'event_management_custom_events'
+
+export const getEvents = () => {
+  try {
+    const data = localStorage.getItem(EVENTS_STORAGE_KEY)
+    if (!data) {
+      localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(sampleEvents))
+      return sampleEvents
+    }
+    return JSON.parse(data)
+  } catch (e) {
+    console.error('Error loading events:', e)
+    return sampleEvents
+  }
+}
+
+export const addEvent = (newEventData) => {
+  const currentEvents = getEvents()
+  const newEvent = {
+    id: Date.now(),
+    isPopular: true,
+    ...newEventData
+  }
+  const updatedEvents = [newEvent, ...currentEvents]
+  try {
+    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(updatedEvents))
+    window.dispatchEvent(new CustomEvent('events-changed'))
+  } catch (e) {
+    console.error('Error saving new event:', e)
+  }
+  return newEvent
+}
+
+export const useEventsState = () => {
+  const [events, setEvents] = useState(getEvents)
+
+  useEffect(() => {
+    const handleUpdate = () => setEvents(getEvents())
+    window.addEventListener('events-changed', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('events-changed', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
+  }, [])
+
+  return events
+}
