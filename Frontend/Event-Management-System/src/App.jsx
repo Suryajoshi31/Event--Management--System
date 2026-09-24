@@ -1,5 +1,7 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import AuthModal from './Components/AuthModal'
 import Navbar from './Components/Navbar'
 import Footer from './Components/Footer'
 import Hero from './Components/Hero'
@@ -17,23 +19,26 @@ const DiscoverPage = () => (
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen flex flex-col justify-between bg-[#f8f9fa] font-sans antialiased text-gray-900">
-        <div>
-          <Navbar />
-          <main>
-            <Routes>
-              <Route path="/" element={<DiscoverPage />} />
-              <Route path="/discover" element={<DiscoverPage />} />
-              <Route path="/event" element={<Event />} />
-              <Route path="/tickets" element={<MyTicket />} />
-              <Route path="/organizer" element={<Organizer />} />
-            </Routes>
-          </main>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="min-h-screen flex flex-col justify-between bg-[#f8f9fa] font-sans antialiased text-gray-900">
+          <div>
+            <Navbar />
+            <AuthModal />
+            <main>
+              <Routes>
+                <Route path="/" element={<DiscoverPage />} />
+                <Route path="/discover" element={<DiscoverPage />} />
+                <Route path="/event" element={<Event />} />
+                <Route path="/tickets" element={<MyTicket />} />
+                <Route path="/organizer" element={<Organizer />} />
+              </Routes>
+            </main>
+          </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 

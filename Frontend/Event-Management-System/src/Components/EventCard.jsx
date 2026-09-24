@@ -1,7 +1,12 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Calendar, MapPin, Tag, ArrowUpRight, Heart } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 const EventCard = ({ event }) => {
+  const navigate = useNavigate()
+  const { user, openAuthModal } = useAuth()
+
   const {
     title,
     date,
@@ -13,6 +18,14 @@ const EventCard = ({ event }) => {
     organizer,
     isPopular,
   } = event
+
+  const handleGetTicket = () => {
+    if (!user) {
+      openAuthModal('login')
+    } else {
+      navigate('/tickets')
+    }
+  }
 
   return (
     <div className="group bg-white rounded-3xl overflow-hidden border border-gray-200/80 hover:border-gray-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
@@ -84,6 +97,7 @@ const EventCard = ({ event }) => {
 
         <button
           type="button"
+          onClick={handleGetTicket}
           className="mt-4 px-4 py-2.5 rounded-xl bg-[#141824] hover:bg-black text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xs group-hover:shadow-md cursor-pointer"
         >
           <span>Get Ticket</span>

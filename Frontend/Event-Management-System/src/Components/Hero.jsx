@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import FeatureCards from './FeatureCards'
 
 const Hero = () => {
   const [activeCategory, setActiveCategory] = useState('All')
@@ -12,9 +13,8 @@ const Hero = () => {
   }
 
   return (
-    <section className="w-screen py-12 sm:py-16 md:py-20 px-4 sm:px-8 max-w-7xl mx-auto">
+    <section className="w-full py-12 sm:py-16 md:py-20 px-4 sm:px-8 max-w-7xl mx-auto">
       <div className="max-w-3xl">
-        
         {/* Event Count Badge */}
         <p className="text-sm sm:text-base font-bold tracking-wider uppercase text-[#f05335] mb-3">
           1,204 EVENTS THIS MONTH
@@ -67,10 +67,13 @@ const Hero = () => {
             </button>
           ))}
         </div>
-
       </div>
+
+      {/* 3 Feature Cards in a row below the options */}
+      <FeatureCards />
     </section>
   )
 }
 
 export default Hero
+

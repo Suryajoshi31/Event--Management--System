@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useEventsState } from '../data/eventsData'
 import { addBooking, cancelBooking, useBookingsState } from '../utils/bookingStore'
+import { useAuth } from '../context/AuthContext'
 import {
   Ticket,
   Plus,
@@ -21,8 +22,10 @@ import {
 } from 'lucide-react'
 
 const MyTicket = () => {
+  const { user, token, openAuthModal, API_URL } = useAuth()
   const events = useEventsState()
-  const bookings = useBookingsState()
+  const localBookings = useBookingsState()
+  const [dbBookings, setDbBookings] = useState([])
   const [activeTab, setActiveTab] = useState('events') // 'events' | 'my-tickets'
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
@@ -35,11 +38,49 @@ const MyTicket = () => {
   const [buyerName, setBuyerName] = useState('')
   const [buyerEmail, setBuyerEmail] = useState('')
   const [bookingSuccessMsg, setBookingSuccessMsg] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Selected ticket for QR pass preview modal
   const [selectedPassModal, setSelectedPassModal] = useState(null)
 
   const categories = ['All', 'Music', 'Tech', 'Food & Drink', 'Sports']
+
+  // Fetch backend bookings when user/token changes
+  useEffect(() => {
+    if (token) {
+      fetch(`${API_URL}/bookings/my-bookings`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setDbBookings(
+              data.map((b) => ({
+                id: b.ticketId || b._id,
+                eventId: b.eventId,
+                eventTitle: b.eventTitle,
+                eventDate: b.eventDate,
+                eventTime: b.eventTime,
+                eventLocation: b.eventLocation,
+                eventImage: b.eventImage,
+                userName: b.userName,
+                userEmail: b.userEmail,
+                seats: b.seats,
+                unitPrice: b.unitPrice,
+                totalPrice: b.totalPrice,
+                status: b.status === 'Confirmed' ? 'Approved' : b.status,
+                bookedAt: b.bookedAt,
+              }))
+            )
+          }
+        })
+        .catch((err) => console.log('Fetch DB bookings error:', err))
+    }
+  }, [token, API_URL])
+
+  const bookings = token && dbBookings.length > 0 ? dbBookings : localBookings
 
   const handleSeatChange = (eventId, delta) => {
     setSeatCounts((prev) => {
@@ -50,11 +91,17 @@ const MyTicket = () => {
   }
 
   const openBookingModal = (event) => {
+    if (!user) {
+      openAuthModal('login')
+      return
+    }
     setBookingModalEvent(event)
+    setBuyerName(user?.name || '')
+    setBuyerEmail(user?.email || '')
     setBookingSuccessMsg('')
   }
 
-  const handleConfirmBooking = (e) => {
+  const handleConfirmBooking = async (e) => {
     e.preventDefault()
     if (!buyerName.trim() || !buyerEmail.trim() || !bookingModalEvent) return
 
@@ -62,25 +109,74 @@ const MyTicket = () => {
     const unitPrice = bookingModalEvent.price
     const totalPrice = unitPrice * seats
 
-    addBooking({
-      eventId: bookingModalEvent.id,
-      eventTitle: bookingModalEvent.title,
-      eventDate: bookingModalEvent.date,
-      eventTime: bookingModalEvent.time,
-      eventLocation: bookingModalEvent.location,
-      eventImage: bookingModalEvent.image,
-      userName: buyerName.trim(),
-      userEmail: buyerEmail.trim(),
-      seats,
-      unitPrice,
-      totalPrice
-    })
+    setIsSubmitting(true)
 
+    let createdBooking = null
+
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/bookings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            eventId: bookingModalEvent.id,
+            eventTitle: bookingModalEvent.title,
+            eventDate: bookingModalEvent.date,
+            eventTime: bookingModalEvent.time,
+            eventLocation: bookingModalEvent.location,
+            eventImage: bookingModalEvent.image,
+            seats,
+            unitPrice,
+          }),
+        })
+
+        if (res.ok) {
+          const newDbBooking = await res.json()
+          createdBooking = {
+            id: newDbBooking.ticketId,
+            eventId: newDbBooking.eventId,
+            eventTitle: newDbBooking.eventTitle,
+            eventDate: newDbBooking.eventDate,
+            eventTime: newDbBooking.eventTime,
+            eventLocation: newDbBooking.eventLocation,
+            eventImage: newDbBooking.eventImage,
+            userName: newDbBooking.userName,
+            userEmail: newDbBooking.userEmail,
+            seats: newDbBooking.seats,
+            unitPrice: newDbBooking.unitPrice,
+            totalPrice: newDbBooking.totalPrice,
+            status: 'Approved',
+          }
+          setDbBookings((prev) => [createdBooking, ...prev])
+        }
+      } catch (err) {
+        console.error('Backend booking error:', err)
+      }
+    }
+
+    if (!createdBooking) {
+      addBooking({
+        eventId: bookingModalEvent.id,
+        eventTitle: bookingModalEvent.title,
+        eventDate: bookingModalEvent.date,
+        eventTime: bookingModalEvent.time,
+        eventLocation: bookingModalEvent.location,
+        eventImage: bookingModalEvent.image,
+        userName: buyerName.trim(),
+        userEmail: buyerEmail.trim(),
+        seats,
+        unitPrice,
+        totalPrice,
+      })
+    }
+
+    setIsSubmitting(false)
     setBookingSuccessMsg('🎉 Ticket booking request submitted successfully!')
     setTimeout(() => {
       setBookingModalEvent(null)
-      setBuyerName('')
-      setBuyerEmail('')
       setBookingSuccessMsg('')
       setActiveTab('my-tickets')
     }, 1500)
