@@ -48,7 +48,10 @@ export const AuthProvider = ({ children }) => {
       closeAuthModal()
       return { success: true }
     } catch (err) {
-      return { success: false, error: err.message }
+      const errorMessage = err.name === 'TypeError' && err.message === 'Failed to fetch'
+        ? 'Cannot connect to backend server (http://localhost:5000). Please verify backend is running.'
+        : err.message
+      return { success: false, error: errorMessage }
     }
   }
 
@@ -76,9 +79,13 @@ export const AuthProvider = ({ children }) => {
       closeAuthModal()
       return { success: true }
     } catch (err) {
-      return { success: false, error: err.message }
+      const errorMessage = err.name === 'TypeError' && err.message === 'Failed to fetch'
+        ? 'Cannot connect to backend server (http://localhost:5000). Please verify backend is running.'
+        : err.message
+      return { success: false, error: errorMessage }
     }
   }
+
 
   // Logout handler
   const logout = () => {

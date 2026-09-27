@@ -11,9 +11,21 @@ connectDB()
 
 const app = express()
 
+const mongoose = require('mongoose')
+
 // Middleware
 app.use(cors())
 app.use(express.json())
+
+// Database connection check middleware for API routes
+app.use('/api', (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      message: 'Database connection error. Please ensure MongoDB service is running (net start MongoDB) or check your MONGO_URI.'
+    })
+  }
+  next()
+})
 
 // API Routes
 app.use('/api/auth', require('./routes/authRoutes'))

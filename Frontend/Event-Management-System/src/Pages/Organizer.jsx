@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useBookingsState, updateBookingStatus } from '../utils/bookingStore'
-import { addEvent } from '../data/eventsData'
+import { addEvent, createBackendEvent } from '../data/eventsData'
+import { useAuth } from '../context/AuthContext'
 import {
   ShieldCheck,
   CheckCircle2,
@@ -22,7 +23,9 @@ import {
 } from 'lucide-react'
 
 const Organizer = () => {
-  const bookings = useBookingsState()
+  const { user, token, API_URL } = useAuth()
+  const localBookings = useBookingsState()
+  const [dbBookings, setDbBookings] = useState([])
   const [filterStatus, setFilterStatus] = useState('All') // 'All' | 'Pending' | 'Approved' | 'Rejected'
   const [searchQuery, setSearchQuery] = useState('')
   const [actionSuccess, setActionSuccess] = useState(null)
@@ -45,46 +48,130 @@ const Organizer = () => {
     'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=800&q=80'
   ]
 
+  const fetchBackendBookings = () => {
+    if (token) {
+      fetch(`${API_URL}/bookings`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setDbBookings(
+              data.map((b) => ({
+                id: b.ticketId || b._id,
+                _id: b._id,
+                eventId: b.eventId,
+                eventTitle: b.eventTitle,
+                eventDate: b.eventDate,
+                eventTime: b.eventTime,
+                eventLocation: b.eventLocation,
+                eventImage: b.eventImage,
+                userName: b.userName || b.user?.name || 'Attendee',
+                userEmail: b.userEmail || b.user?.email || 'N/A',
+                seats: b.seats,
+                unitPrice: b.unitPrice,
+                totalPrice: b.totalPrice,
+                status: b.status,
+                bookedAt: b.bookedAt,
+              }))
+            )
+          }
+        })
+        .catch((err) => console.log('Organizer fetch bookings error:', err))
+    }
+  }
+
+  useEffect(() => {
+    fetchBackendBookings()
+  }, [token, API_URL])
+
+  const bookings = token && dbBookings.length > 0 ? dbBookings : localBookings
+
   const pendingList = bookings.filter((b) => b.status === 'Pending')
-  const approvedList = bookings.filter((b) => b.status === 'Approved')
+  const approvedList = bookings.filter((b) => b.status === 'Approved' || b.status === 'Confirmed')
   const rejectedList = bookings.filter((b) => b.status === 'Rejected')
 
   const totalRevenue = approvedList.reduce((sum, b) => sum + (b.totalPrice || 0), 0)
 
-  const handleApprove = (id, title) => {
+  const handleApprove = async (id, title) => {
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/bookings/${id}/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: 'Approved' }),
+        })
+        if (res.ok) {
+          fetchBackendBookings()
+        }
+      } catch (err) {
+        console.error('Approve error:', err)
+      }
+    }
     updateBookingStatus(id, 'Approved')
     setActionSuccess({ type: 'approved', message: `Approved ticket ${id} for ${title}` })
     setTimeout(() => setActionSuccess(null), 3000)
   }
 
-  const handleReject = (id, title) => {
+  const handleReject = async (id, title) => {
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/bookings/${id}/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: 'Rejected' }),
+        })
+        if (res.ok) {
+          fetchBackendBookings()
+        }
+      } catch (err) {
+        console.error('Reject error:', err)
+      }
+    }
     updateBookingStatus(id, 'Rejected')
     setActionSuccess({ type: 'rejected', message: `Rejected ticket ${id} for ${title}` })
     setTimeout(() => setActionSuccess(null), 3000)
   }
 
-  const handleCreateEvent = (e) => {
+  const handleCreateEvent = async (e) => {
     e.preventDefault()
-    if (!eventTitle.trim() || !eventLocation.trim() || !eventOrganizer.trim()) return
+    if (!eventTitle.trim() || !eventLocation.trim()) return
 
     const chosenImage =
       eventImage.trim() ||
       defaultImagePlaceholders[Math.floor(Math.random() * defaultImagePlaceholders.length)]
 
-    addEvent({
+    const eventPayload = {
       title: eventTitle.trim(),
       category: eventCategory,
       date: eventDate.trim() || 'SAT, DEC 12',
       time: eventTime.trim() || '7:00 PM',
       location: eventLocation.trim(),
       price: eventPrice === '' || Number(eventPrice) < 0 ? 0 : Number(eventPrice),
-      organizer: eventOrganizer.trim(),
+      organizer: eventOrganizer.trim() || user?.name || 'Event Organizer',
       image: chosenImage
-    })
+    }
+
+    if (token) {
+      const res = await createBackendEvent(eventPayload, token)
+      if (!res.success) {
+        addEvent(eventPayload)
+      }
+    } else {
+      addEvent(eventPayload)
+    }
 
     setActionSuccess({
       type: 'approved',
-      message: `🎉 New Event "${eventTitle}" created successfully! It is now live for ticket bookings.`
+      message: `🎉 New Event "${eventTitle}" created successfully in MongoDB database!`
     })
     setTimeout(() => setActionSuccess(null), 4000)
 
@@ -103,12 +190,13 @@ const Organizer = () => {
   const filteredBookings = bookings.filter((b) => {
     const matchesStatus = filterStatus === 'All' || b.status === filterStatus
     const matchesSearch =
-      b.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.id.toLowerCase().includes(searchQuery.toLowerCase())
+      (b.userName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.userEmail || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.eventTitle || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.id || '').toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
   })
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">

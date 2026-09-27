@@ -38,7 +38,7 @@ const createBooking = async (req, res) => {
       seats: Number(seats),
       unitPrice: Number(unitPrice || 0),
       totalPrice: Number(totalPrice),
-      status: 'Confirmed',
+      status: 'Pending',
     })
 
     const createdBooking = await booking.save()
@@ -89,6 +89,36 @@ const cancelBooking = async (req, res) => {
   }
 }
 
+// @desc    Update booking status (Approved / Rejected)
+// @route   PUT /api/bookings/:id/status
+// @access  Private (Admin / Organizer)
+const updateBookingStatus = async (req, res) => {
+  try {
+    const { status } = req.body
+    if (!['Approved', 'Rejected', 'Pending', 'Cancelled'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid booking status' })
+    }
+
+    // Search by _id or by ticketId
+    let booking = await Booking.findById(req.params.id)
+    if (!booking) {
+      booking = await Booking.findOne({ ticketId: req.params.id })
+    }
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking ticket not found' })
+    }
+
+    booking.status = status
+    const updatedBooking = await booking.save()
+
+    res.json(updatedBooking)
+  } catch (error) {
+    console.error('Update Booking Status Error:', error)
+    res.status(500).json({ message: error.message || 'Failed to update booking status' })
+  }
+}
+
 // @desc    Get all bookings (Admin/Organizer)
 // @route   GET /api/bookings
 // @access  Private (Admin/Organizer)
@@ -106,5 +136,6 @@ module.exports = {
   createBooking,
   getMyBookings,
   cancelBooking,
+  updateBookingStatus,
   getAllBookings,
 }
