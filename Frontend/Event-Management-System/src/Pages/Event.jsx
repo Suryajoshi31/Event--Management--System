@@ -1,12 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import EventCard from '../Components/EventCard'
 import { useEventsState } from '../data/eventsData'
 import { Search, Sparkles, SlidersHorizontal } from 'lucide-react'
 
 const Event = () => {
   const events = useEventsState()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [searchParams] = useSearchParams()
+
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All')
+
+  useEffect(() => {
+    const s = searchParams.get('search')
+    const c = searchParams.get('category')
+    if (s !== null) setSearchQuery(s)
+    if (c !== null) setSelectedCategory(c)
+  }, [searchParams])
 
   const categories = ['All', 'Music', 'Tech', 'Food & Drink', 'Sports']
 

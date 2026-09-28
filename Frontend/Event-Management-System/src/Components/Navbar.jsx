@@ -9,7 +9,7 @@ const Navbar = () => {
 
   const navItems = [
     { name: 'Discover', path: '/' },
-    { name: 'Event', path: '/event' },
+    { name: 'Events', path: '/event' },
     { name: 'My Tickets', path: '/tickets' },
     { name: 'Organizer', path: '/organizer' },
   ]
@@ -17,7 +17,7 @@ const Navbar = () => {
   return (
     <header className="w-full bg-[#f3f4f6] px-4 py-4 sm:px-8 border-b border-gray-200/60 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
+
         {/* Brand Logo */}
         <Link
           to="/"
@@ -35,10 +35,9 @@ const Navbar = () => {
               to={item.path}
               end={item.path === '/'}
               className={({ isActive }) =>
-                `px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-                  isActive
-                    ? 'bg-[#151922] text-white shadow-sm'
-                    : 'text-[#4b5563] hover:text-[#111827] hover:bg-gray-100/70'
+                `px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${isActive
+                  ? 'bg-[#151922] text-white shadow-sm'
+                  : 'text-[#4b5563] hover:text-[#111827] hover:bg-gray-100/70'
                 }`
               }
             >
@@ -114,10 +113,9 @@ const Navbar = () => {
               end={item.path === '/'}
               onClick={() => setMobileMenuOpen(false)}
               className={({ isActive }) =>
-                `px-4 py-3 rounded-xl text-base font-semibold transition-all ${
-                  isActive
-                    ? 'bg-[#151922] text-white'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                `px-4 py-3 rounded-xl text-base font-semibold transition-all ${isActive
+                  ? 'bg-[#151922] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`
               }
             >

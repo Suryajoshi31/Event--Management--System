@@ -2,10 +2,13 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, MapPin, Tag, ArrowUpRight, Heart } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useFavoritesState, toggleFavorite } from '../utils/favoritesStore'
 
 const EventCard = ({ event }) => {
   const navigate = useNavigate()
   const { user, openAuthModal } = useAuth()
+  const favorites = useFavoritesState()
+  const isFav = favorites.includes(String(event.id))
 
   const {
     title,
@@ -25,6 +28,11 @@ const EventCard = ({ event }) => {
     } else {
       navigate('/tickets')
     }
+  }
+
+  const handleToggleFav = (e) => {
+    e.stopPropagation()
+    toggleFavorite(event.id)
   }
 
   return (
@@ -56,10 +64,16 @@ const EventCard = ({ event }) => {
           {/* Like / Wishlist Button */}
           <button
             type="button"
-            aria-label="Save event"
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/80 backdrop-blur-md hover:bg-white text-gray-700 hover:text-red-500 transition-colors shadow-xs cursor-pointer"
+            onClick={handleToggleFav}
+            aria-label={isFav ? "Remove from favorites" : "Save to favorites"}
+            title={isFav ? "Remove from favorites" : "Save to favorites"}
+            className={`absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all shadow-md cursor-pointer ${
+              isFav
+                ? 'bg-red-500 text-white hover:bg-red-600 scale-110'
+                : 'bg-white/80 hover:bg-white text-gray-700 hover:text-red-500'
+            }`}
           >
-            <Heart size={16} />
+            <Heart size={16} className={isFav ? 'fill-white' : ''} />
           </button>
 
           {/* Price Badge on Image */}

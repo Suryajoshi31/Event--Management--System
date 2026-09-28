@@ -100,7 +100,9 @@ export const updateBookingStatus = (bookingId, newStatus) => {
 
 export const cancelBooking = (bookingId) => {
   const current = getBookings()
-  const updated = current.filter((b) => b.id !== bookingId)
+  const updated = current.map((b) =>
+    b.id === bookingId ? { ...b, status: 'Cancelled' } : b
+  )
   saveBookings(updated)
 }
 

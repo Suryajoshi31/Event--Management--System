@@ -68,14 +68,24 @@ const getMyBookings = async (req, res) => {
 // @access  Private
 const cancelBooking = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id)
+    let booking
+    if (req.params.id && req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      booking = await Booking.findById(req.params.id)
+    }
+    if (!booking) {
+      booking = await Booking.findOne({ ticketId: req.params.id })
+    }
 
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' })
     }
 
-    // Ensure user owns the booking or is admin
-    if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Ensure user owns the booking or is admin/organizer
+    if (
+      booking.user.toString() !== req.user._id.toString() &&
+      req.user.role !== 'admin' &&
+      req.user.role !== 'organizer'
+    ) {
       return res.status(403).json({ message: 'Not authorized to cancel this booking' })
     }
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useEventsState } from '../data/eventsData'
 import { addBooking, cancelBooking, useBookingsState } from '../utils/bookingStore'
+import { useFavoritesState, toggleFavorite } from '../utils/favoritesStore'
 import { useAuth } from '../context/AuthContext'
 import {
   Ticket,
@@ -18,17 +20,32 @@ import {
   QrCode,
   X,
   Search,
-  Check
+  Check,
+  Heart
 } from 'lucide-react'
 
 const MyTicket = () => {
   const { user, token, openAuthModal, API_URL } = useAuth()
+  const [searchParams] = useSearchParams()
   const events = useEventsState()
   const localBookings = useBookingsState()
+  const favorites = useFavoritesState()
   const [dbBookings, setDbBookings] = useState([])
-  const [activeTab, setActiveTab] = useState('events') // 'events' | 'my-tickets'
+
+  const initialTab = searchParams.get('tab') || 'events'
+  const [activeTab, setActiveTab] = useState(initialTab) // 'events' | 'my-tickets' | 'favorites'
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam) {
+      setActiveTab(tabParam)
+    }
+  }, [searchParams])
+
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+
+  const favoriteEvents = events.filter((e) => favorites.includes(String(e.id)))
 
   // Seat quantities map: { eventId: quantity }
   const [seatCounts, setSeatCounts] = useState({})
@@ -182,6 +199,33 @@ const MyTicket = () => {
     }, 1500)
   }
 
+  const handleUserCancelBooking = async (booking) => {
+    const targetId = booking._id || booking.id
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/bookings/${targetId}/cancel`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        if (res.ok) {
+          setDbBookings((prev) =>
+            prev.map((b) =>
+              b.id === booking.id || b._id === targetId
+                ? { ...b, status: 'Cancelled' }
+                : b
+            )
+          )
+        }
+      } catch (err) {
+        console.error('Cancel backend booking error:', err)
+      }
+    }
+    cancelBooking(booking.id)
+  }
+
   const filteredEvents = events.filter((event) => {
     const matchesCat =
       selectedCategory === 'All' ||
@@ -237,6 +281,14 @@ const MyTicket = () => {
                 <p className="text-lg font-extrabold text-emerald-300">{approvedCount}</p>
               </div>
             </div>
+
+            <div className="bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2.5 rounded-2xl flex items-center gap-3">
+              <Heart className="text-rose-400 fill-rose-400" size={20} />
+              <div>
+                <p className="text-xs text-gray-400 font-semibold uppercase">Saved Favorites</p>
+                <p className="text-lg font-extrabold text-rose-300">{favoriteEvents.length}</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -244,11 +296,11 @@ const MyTicket = () => {
       </div>
 
       {/* Primary Navigation Tabs */}
-      <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4">
+      <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('events')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-extrabold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'events'
               ? 'bg-[#141824] text-white shadow-md'
               : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
@@ -261,7 +313,7 @@ const MyTicket = () => {
         <button
           type="button"
           onClick={() => setActiveTab('my-tickets')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-extrabold transition-all cursor-pointer relative ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-extrabold transition-all cursor-pointer relative whitespace-nowrap ${
             activeTab === 'my-tickets'
               ? 'bg-[#141824] text-white shadow-md'
               : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
@@ -272,6 +324,24 @@ const MyTicket = () => {
           {bookings.length > 0 && (
             <span className="ml-1 bg-[#f05335] text-white text-xs px-2 py-0.5 rounded-full font-bold">
               {bookings.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('favorites')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-extrabold transition-all cursor-pointer relative whitespace-nowrap ${
+            activeTab === 'favorites'
+              ? 'bg-[#141824] text-white shadow-md'
+              : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+          }`}
+        >
+          <Heart size={18} className={activeTab === 'favorites' ? 'fill-rose-500 text-rose-500' : 'text-rose-500'} />
+          <span>Favorite Events</span>
+          {favoriteEvents.length > 0 && (
+            <span className="ml-1 bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+              {favoriteEvents.length}
             </span>
           )}
         </button>
@@ -452,9 +522,10 @@ const MyTicket = () => {
           {bookings.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {bookings.map((booking) => {
-                const isApproved = booking.status === 'Approved'
+                const isApproved = booking.status === 'Approved' || booking.status === 'Confirmed'
                 const isPending = booking.status === 'Pending'
                 const isRejected = booking.status === 'Rejected'
+                const isCancelled = booking.status === 'Cancelled'
 
                 return (
                   <div
@@ -486,6 +557,11 @@ const MyTicket = () => {
                           {isRejected && (
                             <span className="bg-rose-500 text-white text-xs font-black uppercase px-3 py-1 rounded-full shadow-md flex items-center gap-1">
                               <XCircle size={14} /> Rejected
+                            </span>
+                          )}
+                          {isCancelled && (
+                            <span className="bg-gray-600 text-white text-xs font-black uppercase px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+                              <XCircle size={14} /> Cancelled
                             </span>
                           )}
                         </div>
@@ -545,8 +621,8 @@ const MyTicket = () => {
                       {isPending && (
                         <button
                           type="button"
-                          onClick={() => cancelBooking(booking.id)}
-                          className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-600 hover:text-rose-600 border border-gray-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                          onClick={() => handleUserCancelBooking(booking)}
+                          className="w-full py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-rose-200 shadow-xs"
                         >
                           <X size={14} />
                           <span>Cancel Request</span>
@@ -558,6 +634,12 @@ const MyTicket = () => {
                           This booking request was declined by the organizer.
                         </p>
                       )}
+
+                      {isCancelled && (
+                        <p className="text-xs text-gray-500 font-medium italic w-full text-center py-1">
+                          You cancelled this ticket reservation request.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )
@@ -566,6 +648,162 @@ const MyTicket = () => {
           ) : (
             <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-gray-300 text-gray-500 font-medium">
               You haven't booked any tickets yet. Switch to <strong>Book Tickets</strong> tab to reserve your seats!
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: FAVORITE EVENTS */}
+      {activeTab === 'favorites' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+            <div>
+              <h2 className="text-xl font-black text-gray-900">Your Favorite & Saved Events</h2>
+              <p className="text-sm text-gray-500">
+                Easily access your saved events, select your seat quantity, and reserve tickets instantly.
+              </p>
+            </div>
+            <div className="text-right text-sm font-semibold text-gray-500 shrink-0">
+              Saved Events: <span className="font-bold text-gray-900">{favoriteEvents.length}</span>
+            </div>
+          </div>
+
+          {favoriteEvents.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6">
+              {favoriteEvents.map((event) => {
+                const seats = seatCounts[event.id] || 1
+                const totalCost = event.price === 0 ? 0 : event.price * seats
+
+                return (
+                  <div
+                    key={event.id}
+                    className="bg-white rounded-3xl border border-gray-200/80 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row gap-6 items-stretch"
+                  >
+                    {/* Event Poster Image */}
+                    <div className="lg:w-72 h-48 lg:h-auto rounded-2xl overflow-hidden relative shrink-0">
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-3 left-3 bg-[#141824]/80 backdrop-blur-md text-white text-xs font-black uppercase px-3 py-1 rounded-full border border-white/20">
+                        {event.category}
+                      </div>
+                      {event.price === 0 ? (
+                        <div className="absolute bottom-3 left-3 bg-emerald-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-sm">
+                          FREE ADMISSION
+                        </div>
+                      ) : (
+                        <div className="absolute bottom-3 left-3 bg-[#f05335] text-white text-xs font-black px-3 py-1 rounded-full shadow-sm">
+                          ${event.price} / seat
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Details Column */}
+                    <div className="flex-1 flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-500">
+                            <span className="flex items-center gap-1.5 text-[#f05335]">
+                              <Calendar size={14} />
+                              {event.date}
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <Clock size={14} />
+                              {event.time}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => toggleFavorite(event.id)}
+                            className="p-2 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
+                            title="Remove from favorites"
+                          >
+                            <Heart size={16} className="fill-rose-500 text-rose-500" />
+                            <span className="hidden sm:inline">Remove</span>
+                          </button>
+                        </div>
+
+                        <h3 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight mb-2">
+                          {event.title}
+                        </h3>
+
+                        <p className="flex items-center gap-1.5 text-sm text-gray-600 mb-3">
+                          <MapPin size={16} className="text-gray-400 shrink-0" />
+                          <span>{event.location}</span>
+                        </p>
+
+                        <p className="text-xs text-gray-500">
+                          Organized by <strong className="text-gray-800">{event.organizer}</strong>
+                        </p>
+                      </div>
+
+                      {/* Seat Counter & Action */}
+                      <div className="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-200">
+                          <span className="text-xs font-bold uppercase text-gray-500 px-2">
+                            Select Seats:
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleSeatChange(event.id, -1)}
+                            className="w-8 h-8 rounded-xl bg-white border border-gray-200 text-gray-700 flex items-center justify-center font-bold hover:bg-gray-100 cursor-pointer"
+                            aria-label="Decrease seats"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="w-8 text-center text-base font-black text-gray-900">
+                            {seats}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleSeatChange(event.id, 1)}
+                            className="w-8 h-8 rounded-xl bg-white border border-gray-200 text-gray-700 flex items-center justify-center font-bold hover:bg-gray-100 cursor-pointer"
+                            aria-label="Increase seats"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500 font-semibold">Total Price ({seats} {seats === 1 ? 'seat' : 'seats'})</p>
+                            <p className="text-xl font-black text-gray-900">
+                              {totalCost === 0 ? 'FREE' : `$${totalCost}`}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => openBookingModal(event)}
+                            className="px-6 py-3 rounded-2xl bg-[#f05335] hover:bg-[#d94429] text-white font-extrabold text-sm transition-all shadow-md active:scale-95 cursor-pointer flex items-center gap-2"
+                          >
+                            <Ticket size={18} />
+                            <span>Book Now</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-gray-300 text-gray-500 font-medium space-y-3">
+              <Heart size={44} className="mx-auto text-rose-300 fill-rose-100" />
+              <p className="text-lg font-bold text-gray-800">No Favorite Events Saved Yet</p>
+              <p className="text-sm text-gray-500 max-w-md mx-auto">
+                Click the heart icon on any event card while browsing to add events to your favorites list!
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('events')}
+                className="mt-2 px-6 py-3 rounded-2xl bg-[#141824] hover:bg-black text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md inline-block"
+              >
+                Browse & Save Events
+              </button>
             </div>
           )}
         </div>

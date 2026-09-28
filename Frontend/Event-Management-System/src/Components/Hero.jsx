@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import FeatureCards from './FeatureCards'
 
 const Hero = () => {
+  const navigate = useNavigate()
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -9,7 +11,20 @@ const Hero = () => {
 
   const handleSearch = (e) => {
     e.preventDefault()
-    // Handle search action
+    if (searchQuery.trim()) {
+      navigate(`/event?search=${encodeURIComponent(searchQuery.trim())}`)
+    } else {
+      navigate('/event')
+    }
+  }
+
+  const handleCategoryClick = (cat) => {
+    setActiveCategory(cat)
+    if (cat === 'All') {
+      navigate('/event')
+    } else {
+      navigate(`/event?category=${encodeURIComponent(cat)}`)
+    }
   }
 
   return (
@@ -17,7 +32,7 @@ const Hero = () => {
       <div className="max-w-3xl">
         {/* Event Count Badge */}
         <p className="text-sm sm:text-base font-bold tracking-wider uppercase text-[#f05335] mb-3">
-          1,204 EVENTS THIS MONTH
+          EXPLORE EVENTS NEAR YOU
         </p>
 
         {/* Big Bold Headline */}
@@ -56,12 +71,11 @@ const Hero = () => {
             <button
               key={cat}
               type="button"
-              onClick={() => setActiveCategory(cat)}
-              className={`px-5 py-2 sm:py-2.5 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer border ${
-                activeCategory === cat
+              onClick={() => handleCategoryClick(cat)}
+              className={`px-5 py-2 sm:py-2.5 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer border ${activeCategory === cat
                   ? 'bg-[#141824] text-white border-[#141824] shadow-xs'
                   : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-              }`}
+                }`}
             >
               {cat}
             </button>
