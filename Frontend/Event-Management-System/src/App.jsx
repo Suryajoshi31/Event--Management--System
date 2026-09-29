@@ -6,14 +6,20 @@ import Navbar from './Components/Navbar'
 import Footer from './Components/Footer'
 import Hero from './Components/Hero'
 import UpcomingEvents from './Components/UpcomingEvents'
+import HowItWorks from './Components/HowItWorks'
+import WhyChooseUs from './Components/WhyChooseUs'
+import OrganizerCTA from './Components/OrganizerCTA'
 import Event from './Pages/Event'
 import MyTicket from './Pages/MyTicket'
 import Organizer from './Pages/Organizer'
 
 const DiscoverPage = () => (
-  <div>
+  <div className="space-y-6">
     <Hero />
+    <HowItWorks />
     <UpcomingEvents />
+    <WhyChooseUs />
+    <OrganizerCTA />
   </div>
 )
 

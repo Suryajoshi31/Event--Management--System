@@ -14,8 +14,8 @@ const initialSampleBookings = [
     userName: 'Alex Morgan',
     userEmail: 'alex.m@example.com',
     seats: 2,
-    unitPrice: 45,
-    totalPrice: 90,
+    unitPrice: 1500,
+    totalPrice: 3000,
     status: 'Pending',
     bookedAt: '2026-09-23T14:30:00.000Z'
   },
@@ -30,8 +30,8 @@ const initialSampleBookings = [
     userName: 'Sarah Jenkins',
     userEmail: 'sarah.j@example.com',
     seats: 1,
-    unitPrice: 120,
-    totalPrice: 120,
+    unitPrice: 3500,
+    totalPrice: 3500,
     status: 'Approved',
     bookedAt: '2026-09-22T10:15:00.000Z'
   },
@@ -46,8 +46,8 @@ const initialSampleBookings = [
     userName: 'David Chen',
     userEmail: 'david.c@example.com',
     seats: 4,
-    unitPrice: 35,
-    totalPrice: 140,
+    unitPrice: 1200,
+    totalPrice: 4800,
     status: 'Pending',
     bookedAt: '2026-09-23T16:00:00.000Z'
   }

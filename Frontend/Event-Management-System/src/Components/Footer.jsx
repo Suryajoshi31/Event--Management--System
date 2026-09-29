@@ -111,25 +111,25 @@ const Footer = () => {
                             className="inline-flex items-center gap-1.5 text-2xl font-black tracking-tight text-white font-sans group mb-4"
                         >
                             <span className="h-3 w-3 rounded-full bg-[#f05335] inline-block transition-transform group-hover:scale-125" />
-                            <span>STUB</span>
+                            <span>EVENTORA</span>
                         </Link>
                         <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                            STUB is the premier platform to discover, buy, and manage tickets for live events. Whether you are hosting an intimate workshop or a massive music festival, we provide the tools to make event management effortless.
+                            EVENTORA is the premier platform to discover, buy, and manage tickets for live events. Whether you are hosting an intimate workshop or a massive music festival, we provide the tools to make event management effortless.
                         </p>
 
                         {/* Contact Details */}
                         <div className="space-y-3 text-xs sm:text-sm text-gray-400">
                             <div className="flex items-center gap-3">
                                 <MapPin size={16} className="text-[#f05335] shrink-0" />
-                                <span>Kathmandu, Nepal & Global Offices</span>
+                                <span>Lokanthali,Bhaktapur,Nepal</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Phone size={16} className="text-[#f05335] shrink-0" />
-                                <a href="tel:+977123456789" className="hover:text-white transition-colors">+977 (01) 456-7890</a>
+                                <a href="9865460356" className="hover:text-white transition-colors">9865460356</a>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Mail size={16} className="text-[#f05335] shrink-0" />
-                                <a href="mailto:support@stub.com" className="hover:text-white transition-colors">support@stub.com</a>
+                                <a href="suryajoshi180@gmail.com" className="hover:text-white transition-colors">suryajoshi180@gmail.com</a>
                             </div>
                         </div>
                     </div>
@@ -156,7 +156,7 @@ const Footer = () => {
                             For Organizers
                         </h3>
                         <ul className="space-y-2.5 text-sm">
-                            {['Create an Event', 'Ticket Pricing Plan', 'Organizer Dashboard', 'Venue Directory', 'Check-in Scanner App', 'Promotion Guidelines'].map((item, idx) => (
+                            {['Create an Event', 'Ticket Pricing Plan', 'Organizer Dashboard', 'Venue Directory',].map((item, idx) => (
                                 <li key={idx}>
                                     <Link to="/organizer" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
                                         {item}
@@ -187,13 +187,12 @@ const Footer = () => {
                 {/* Bottom Bar: Copyright & Social Links */}
                 <div className="pt-8 border-t border-gray-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-xs text-gray-500 text-center sm:text-left">
-                        © {new Date().getFullYear()} STUB Event Management. All rights reserved.
+                        © {new Date().getFullYear()} EVENTORA . All rights reserved.
                     </p>
 
                     {/* Social Icons */}
                     <div className="flex items-center gap-3">
                         {[
-                            { component: TwitterIcon, href: 'https://twitter.com', label: 'Twitter' },
                             { component: InstagramIcon, href: 'https://instagram.com', label: 'Instagram' },
                             { component: FacebookIcon, href: 'https://facebook.com', label: 'Facebook' },
                             { component: LinkedinIcon, href: 'https://linkedin.com', label: 'LinkedIn' },

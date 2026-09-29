@@ -411,7 +411,7 @@ const MyTicket = () => {
                         </div>
                       ) : (
                         <div className="absolute bottom-3 left-3 bg-[#f05335] text-white text-xs font-black px-3 py-1 rounded-full shadow-sm">
-                          ${event.price} / seat
+                          Rs. ${event.price} / seat
                         </div>
                       )}
                     </div>
@@ -477,7 +477,7 @@ const MyTicket = () => {
                           <div className="text-right">
                             <p className="text-xs text-gray-500 font-semibold">Total Price ({seats} {seats === 1 ? 'seat' : 'seats'})</p>
                             <p className="text-xl font-black text-gray-900">
-                              {totalCost === 0 ? 'FREE' : `$${totalCost}`}
+                              {totalCost === 0 ? 'FREE' : `Rs. ${totalCost}`}
                             </p>
                           </div>
 
@@ -594,7 +594,7 @@ const MyTicket = () => {
                           <div className="text-right">
                             <p className="text-gray-400">Total Price</p>
                             <p className="text-sm font-extrabold text-gray-900">
-                              {booking.totalPrice === 0 ? 'FREE' : `$${booking.totalPrice}`}
+                              {booking.totalPrice === 0 ? 'FREE' : `Rs. ${booking.totalPrice}`}
                             </p>
                           </div>
                         </div>
@@ -695,7 +695,7 @@ const MyTicket = () => {
                         </div>
                       ) : (
                         <div className="absolute bottom-3 left-3 bg-[#f05335] text-white text-xs font-black px-3 py-1 rounded-full shadow-sm">
-                          ${event.price} / seat
+                          Rs. ${event.price} / seat
                         </div>
                       )}
                     </div>
@@ -771,7 +771,7 @@ const MyTicket = () => {
                           <div className="text-right">
                             <p className="text-xs text-gray-500 font-semibold">Total Price ({seats} {seats === 1 ? 'seat' : 'seats'})</p>
                             <p className="text-xl font-black text-gray-900">
-                              {totalCost === 0 ? 'FREE' : `$${totalCost}`}
+                              {totalCost === 0 ? 'FREE' : `Rs. ${totalCost}`}
                             </p>
                           </div>
 
@@ -853,7 +853,7 @@ const MyTicket = () => {
                       {seatCounts[bookingModalEvent.id] || 1} Seat(s) &bull; Total:{' '}
                       {bookingModalEvent.price === 0
                         ? 'FREE'
-                        : `$${bookingModalEvent.price * (seatCounts[bookingModalEvent.id] || 1)}`}
+                        : `Rs. ${bookingModalEvent.price * (seatCounts[bookingModalEvent.id] || 1)}`}
                     </p>
                   </div>
                 </div>

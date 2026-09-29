@@ -275,7 +275,7 @@ const Organizer = () => {
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase">Approved Sales</p>
-            <p className="text-2xl font-black text-gray-900">${totalRevenue}</p>
+            <p className="text-2xl font-black text-gray-900">Rs. {totalRevenue}</p>
           </div>
         </div>
       </div>
@@ -371,7 +371,7 @@ const Organizer = () => {
                         {b.seats} {b.seats === 1 ? 'Seat' : 'Seats'}
                       </span>
                       <span className="font-extrabold text-gray-900">
-                        Total: {b.totalPrice === 0 ? 'FREE' : `$${b.totalPrice}`}
+                        Total: {b.totalPrice === 0 ? 'FREE' : `Rs. ${b.totalPrice}`}
                       </span>
                     </div>
                   </div>
@@ -500,7 +500,7 @@ const Organizer = () => {
 
                 <div>
                   <label className="block text-xs font-bold uppercase text-gray-700 mb-1.5">
-                    Ticket Price ($ USD) *
+                    Ticket Price (Rs. NPR) *
                   </label>
                   <div className="relative">
                     <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />

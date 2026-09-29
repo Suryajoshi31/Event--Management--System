@@ -78,7 +78,7 @@ const EventCard = ({ event }) => {
 
           {/* Price Badge on Image */}
           <div className="absolute bottom-4 right-4 bg-[#141824]/95 text-white backdrop-blur-md px-3.5 py-1.5 rounded-xl font-bold text-sm shadow-md">
-            {price === 0 ? 'FREE' : `$${price}`}
+            {price === 0 ? 'FREE' : `Rs. ${price}`}
           </div>
         </div>
 

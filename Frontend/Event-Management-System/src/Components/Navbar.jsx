@@ -24,7 +24,7 @@ const Navbar = () => {
           className="flex items-center gap-1 text-2xl sm:text-3xl font-black tracking-tight text-[#141824] font-sans group"
         >
           <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#f05335] inline-block transition-transform group-hover:scale-125" />
-          <span>STUB</span>
+          <span>EVENTORA</span>
         </Link>
 
         {/* Navigation Items */}
