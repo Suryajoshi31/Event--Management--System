@@ -75,7 +75,7 @@ export const sampleEvents = [
   },
 ]
 
-const API_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const EVENTS_STORAGE_KEY = 'event_management_custom_events'
 
 export const getEvents = () => {

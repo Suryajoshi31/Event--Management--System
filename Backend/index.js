@@ -14,7 +14,13 @@ const app = express()
 const mongoose = require('mongoose')
 
 // Middleware
-app.use(cors())
+app.use(cors({
+  origin: [
+    'http://localhost:5173',                    // local dev
+    process.env.FRONTEND_URL,                   // production frontend
+  ].filter(Boolean),
+  credentials: true
+}))
 app.use(express.json())
 
 // Database connection check middleware for API routes

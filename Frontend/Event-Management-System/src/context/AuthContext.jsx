@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext()
 
-const API_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true }
     } catch (err) {
       const errorMessage = err.name === 'TypeError' && err.message === 'Failed to fetch'
-        ? 'Cannot connect to backend server (http://localhost:5000). Please verify backend is running.'
+        ? `Cannot connect to backend server (${API_URL}). Please verify backend is running.`
         : err.message
       return { success: false, error: errorMessage }
     }
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true }
     } catch (err) {
       const errorMessage = err.name === 'TypeError' && err.message === 'Failed to fetch'
-        ? 'Cannot connect to backend server (http://localhost:5000). Please verify backend is running.'
+        ? `Cannot connect to backend server (${API_URL}). Please verify backend is running.`
         : err.message
       return { success: false, error: errorMessage }
     }
